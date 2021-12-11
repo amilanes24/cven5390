@@ -1,0 +1,4526 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Filter symbols by toggling a list</title>
+<meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+<link href="https://api.mapbox.com/mapbox-gl-js/v2.6.1/mapbox-gl.css" rel="stylesheet">
+<script src="https://api.mapbox.com/mapbox-gl-js/v2.6.1/mapbox-gl.js"></script>
+<style>
+body { margin: 0; padding: 0; }
+#map { position: absolute; top: 0; bottom: 0; width: 100%; }
+</style>
+</head>
+<body>
+<script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.7.2/mapbox-gl-geocoder.min.js"></script>
+<link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.7.2/mapbox-gl-geocoder.css" type="text/css">
+
+
+<style>
+    #geocoder-container > div {
+        min-width: 50%;
+        margin-left: 25%;
+    }
+
+    .filter-group {
+        font: 12px/20px 'Helvetica Neue', Arial, Helvetica, sans-serif;
+        font-weight: 600;
+        position: absolute;
+        top: 100px;
+        right: 10px;
+        z-index: 1;
+        border-radius: 3px;
+        width: 120px;
+        color: #fff;
+    }
+
+    .filter-group input[type='checkbox']:first-child + label {
+        border-radius: 3px 3px 0 0;
+    }
+
+    .filter-group label:last-child {
+        border-radius: 0 0 3px 3px;
+        border: none;
+    }
+
+    .filter-group input[type='checkbox'] {
+        display: none;
+    }
+
+    .filter-group input[type='checkbox'] + label {
+        background-color: #3386c0;
+        display: block;
+        cursor: pointer;
+        padding: 10px;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.25);
+    }
+
+    .filter-group input[type='checkbox'] + label {
+        background-color: #3386c0;
+        text-transform: capitalize;
+    }
+
+    .filter-group input[type='checkbox'] + label:hover,
+    .filter-group input[type='checkbox']:checked + label {
+        background-color: #4ea0da;
+    }
+
+    .filter-group input[type='checkbox']:checked + label:before {
+        content: '✔';
+        margin-right: 5px;
+    }
+</style>
+<div id="map"></div>
+
+<nav id="filter-group" class="filter-group"></nav>
+
+<script>
+	mapboxgl.accessToken = 'pk.eyJ1IjoiYW1pbGFuZXMyNCIsImEiOiJja3R1NDEzeTExdzZpMm9vMmY5b2xha3d3In0._vkueHOEx0V0mpEVgGO2-g';
+    // This GeoJSON contains features that include an "icon"
+    // property. The value of the "icon" property corresponds
+    // to an image in the Mapbox Light style's sprite. (Note:
+    // the name of images is the value of the "icon" property
+    // + "-15".)
+    const places = {
+	"type": "FeatureCollection",
+	"features": [
+		{
+			"type": "Feature",
+			"id": 1,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-90.98580587753918,
+					30.356405470436188
+				]
+			},
+			"properties": {
+				"OBJECTID": 1,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "2/8/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 2/8/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 2,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.16120592891048,
+					30.4575054858895
+				]
+			},
+			"properties": {
+				"OBJECTID": 2,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "2/3/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 2/3/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 3,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.00070588117143,
+					30.358005470476145
+				]
+			},
+			"properties": {
+				"OBJECTID": 3,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "3/17/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 3/17/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 4,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-90.99980588283518,
+					30.391605477610768
+				]
+			},
+			"properties": {
+				"OBJECTID": 4,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "5/13/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 5/13/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 5,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.18250593360193,
+					30.428205479199563
+				]
+			},
+			"properties": {
+				"OBJECTID": 5,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "2/3/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 2/3/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 6,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.01540588907051,
+					30.43560548680381
+				]
+			},
+			"properties": {
+				"OBJECTID": 6,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "5/17/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 5/17/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 7,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.12710591760396,
+					30.411005477420873
+				]
+			},
+			"properties": {
+				"OBJECTID": 7,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "3/30/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 3/30/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 8,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-90.99530588216072,
+					30.412305482512069
+				]
+			},
+			"properties": {
+				"OBJECTID": 8,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "5/13/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 5/13/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 9,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.18270593383176,
+					30.431005479719148
+				]
+			},
+			"properties": {
+				"OBJECTID": 9,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "5/13/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 5/13/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 10,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.17210593514074,
+					30.512305497600666
+				]
+			},
+			"properties": {
+				"OBJECTID": 10,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "3/1/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 3/1/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 11,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					0.000020301395863953077,
+					0.0000020802318658752485
+				]
+			},
+			"properties": {
+				"OBJECTID": 11,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "3/25/2018",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 3/25/2018</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 12,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.14980592390424,
+					30.408605476461618
+				]
+			},
+			"properties": {
+				"OBJECTID": 12,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "6/1/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 6/1/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 13,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.1121059183534,
+					30.502305497800536
+				]
+			},
+			"properties": {
+				"OBJECTID": 13,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "3/18/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 3/18/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 14,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.17020593115876,
+					30.441205482447118
+				]
+			},
+			"properties": {
+				"OBJECTID": 14,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "2/3/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 2/3/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 15,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					0.000020301395863953077,
+					0.0000020802318658752485
+				]
+			},
+			"properties": {
+				"OBJECTID": 15,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "7/10/2019",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 7/10/2019</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 16,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.13920592341458,
+					30.453905486249256
+				]
+			},
+			"properties": {
+				"OBJECTID": 16,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "2/3/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 2/3/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 17,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.15250592880551,
+					30.49460549434815
+				]
+			},
+			"properties": {
+				"OBJECTID": 17,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "2/28/2020",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 2/28/2020</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 18,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.1091059140067,
+					30.424305481013165
+				]
+			},
+			"properties": {
+				"OBJECTID": 18,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "3/7/2020",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 3/7/2020</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 19,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.09520590702692,
+					30.355805467048698
+				]
+			},
+			"properties": {
+				"OBJECTID": 19,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "3/11/2020",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 3/11/2020</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 20,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.124005914941,
+					30.360205466708977
+				]
+			},
+			"properties": {
+				"OBJECTID": 20,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "3/13/2020",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 3/13/2020</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 21,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.15250592880551,
+					30.49460549434815
+				]
+			},
+			"properties": {
+				"OBJECTID": 21,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "3/14/2020",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 3/14/2020</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 22,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.06120589853333,
+					30.365205469756689
+				]
+			},
+			"properties": {
+				"OBJECTID": 22,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "5/14/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 5/14/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 23,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.03460589404676,
+					30.43840548642413
+				]
+			},
+			"properties": {
+				"OBJECTID": 23,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "3/17/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 3/17/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 24,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.09520590702692,
+					30.355805467048698
+				]
+			},
+			"properties": {
+				"OBJECTID": 24,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "3/17/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 3/17/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 25,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					0.000020301395863953077,
+					0.0000020802318658752485
+				]
+			},
+			"properties": {
+				"OBJECTID": 25,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "6/8/2020",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 6/8/2020</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 26,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.02780588893057,
+					30.35960546961678
+				]
+			},
+			"properties": {
+				"OBJECTID": 26,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "2/5/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 2/5/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 27,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.06940590166102,
+					30.39550547579711
+				]
+			},
+			"properties": {
+				"OBJECTID": 27,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "6/28/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 6/28/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 28,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.04780590381938,
+					30.56370551259937
+				]
+			},
+			"properties": {
+				"OBJECTID": 28,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "2/2/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 2/2/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 29,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.07280590107144,
+					30.357105467643295
+				]
+			},
+			"properties": {
+				"OBJECTID": 29,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "3/17/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 3/17/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 30,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.14390592072164,
+					30.36380546724854
+				]
+			},
+			"properties": {
+				"OBJECTID": 30,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "3/17/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 3/17/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 31,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.03200589465627,
+					30.455605490001405
+				]
+			},
+			"properties": {
+				"OBJECTID": 31,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "2/4/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 2/4/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 32,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.15320592781126,
+					30.48180549133042
+				]
+			},
+			"properties": {
+				"OBJECTID": 32,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "4/22/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 4/22/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 33,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.01180588853089,
+					30.451505489786599
+				]
+			},
+			"properties": {
+				"OBJECTID": 33,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "5/4/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 5/4/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 34,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.13360592237535,
+					30.469405489671659
+				]
+			},
+			"properties": {
+				"OBJECTID": 34,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "2/3/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 2/3/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 35,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.01930588815617,
+					30.3974054779805
+				]
+			},
+			"properties": {
+				"OBJECTID": 35,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "3/17/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 3/17/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 36,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.04260589514593,
+					30.40000547827026
+				]
+			},
+			"properties": {
+				"OBJECTID": 36,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "3/17/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 3/17/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 37,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.08910590990979,
+					30.461905490046378
+				]
+			},
+			"properties": {
+				"OBJECTID": 37,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "2/2/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 2/2/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 38,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.17110593399161,
+					30.50700549690623
+				]
+			},
+			"properties": {
+				"OBJECTID": 38,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "3/1/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 3/1/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 39,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.0996059111838,
+					30.42810548178261
+				]
+			},
+			"properties": {
+				"OBJECTID": 39,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "4/29/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 4/29/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 40,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.19750593555045,
+					30.38890547001148
+				]
+			},
+			"properties": {
+				"OBJECTID": 40,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "3/17/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 3/17/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 41,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-90.98460587795887,
+					30.37230547431824
+				]
+			},
+			"properties": {
+				"OBJECTID": 41,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "3/17/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 3/17/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 42,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.18530593502084,
+					30.443405482277229
+				]
+			},
+			"properties": {
+				"OBJECTID": 42,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "2/3/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 2/3/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 43,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.12290592356948,
+					30.55540550845751
+				]
+			},
+			"properties": {
+				"OBJECTID": 43,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "2/2/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 2/2/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 44,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.03730590074668,
+					30.555105511710054
+				]
+			},
+			"properties": {
+				"OBJECTID": 44,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "2/2/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 2/2/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 45,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.0201058908741,
+					30.45590549034614
+				]
+			},
+			"properties": {
+				"OBJECTID": 45,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "12/3/2020",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 12/3/2020</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 46,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-90.97860587735932,
+					30.402305480913243
+				]
+			},
+			"properties": {
+				"OBJECTID": 46,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "2/5/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 2/5/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 47,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.14120592571288,
+					30.50210549667139
+				]
+			},
+			"properties": {
+				"OBJECTID": 47,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "12/22/2020",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 12/22/2020</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 48,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.14450592680703,
+					30.5095054979804
+				]
+			},
+			"properties": {
+				"OBJECTID": 48,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "5/10/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 5/10/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 49,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-90.99200587926788,
+					30.36750547239967
+				]
+			},
+			"properties": {
+				"OBJECTID": 49,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "12/17/2020",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 12/17/2020</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 50,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.18200593482601,
+					30.45620548529496
+				]
+			},
+			"properties": {
+				"OBJECTID": 50,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "3/17/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 3/17/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 51,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.10880591725925,
+					30.500505497530754
+				]
+			},
+			"properties": {
+				"OBJECTID": 51,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "1/4/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 1/4/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 52,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.1361059198523,
+					30.39130547276943
+				]
+			},
+			"properties": {
+				"OBJECTID": 52,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "3/1/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 3/1/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 53,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.15220592666214,
+					30.462705487368397
+				]
+			},
+			"properties": {
+				"OBJECTID": 53,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "1/28/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 1/28/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 54,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.15950593055419,
+					30.491605493598685
+				]
+			},
+			"properties": {
+				"OBJECTID": 54,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "5/13/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 5/13/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 55,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.18830593666962,
+					30.45460548435568
+				]
+			},
+			"properties": {
+				"OBJECTID": 55,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "1/20/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 1/20/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 56,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.13070592533814,
+					30.552305507593134
+				]
+			},
+			"properties": {
+				"OBJECTID": 56,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "1/15/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 1/15/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 57,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.15220592666214,
+					30.462705487368397
+				]
+			},
+			"properties": {
+				"OBJECTID": 57,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "4/29/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 4/29/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 58,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.13600592333467,
+					30.46770548951679
+				]
+			},
+			"properties": {
+				"OBJECTID": 58,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "1/20/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 1/20/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 59,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.2030059382734,
+					30.39860547216483
+				]
+			},
+			"properties": {
+				"OBJECTID": 59,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "5/13/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 5/13/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 60,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.02810589287265,
+					30.45290548959673
+				]
+			},
+			"properties": {
+				"OBJECTID": 60,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "1/27/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 1/27/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 61,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.16120593160844,
+					30.512805498175227
+				]
+			},
+			"properties": {
+				"OBJECTID": 61,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "3/1/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 3/1/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 62,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.03790589604023,
+					30.461905491845017
+				]
+			},
+			"properties": {
+				"OBJECTID": 62,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "2/9/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 2/9/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 63,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.15820592816101,
+					30.45800548646406
+				]
+			},
+			"properties": {
+				"OBJECTID": 63,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "2/11/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 2/11/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 64,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.1861059341415,
+					30.419105476836366
+				]
+			},
+			"properties": {
+				"OBJECTID": 64,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "6/22/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 6/22/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 65,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.108305917584,
+					30.513305499649165
+				]
+			},
+			"properties": {
+				"OBJECTID": 65,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "4/21/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 4/21/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 66,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.1171059169045,
+					30.447805485534788
+				]
+			},
+			"properties": {
+				"OBJECTID": 66,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "3/10/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 3/10/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 67,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.16760593356696,
+					30.51750549907956
+				]
+			},
+			"properties": {
+				"OBJECTID": 67,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "2/10/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 2/10/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 68,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-90.90500585573563,
+					30.36000547457303
+				]
+			},
+			"properties": {
+				"OBJECTID": 68,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "7/7/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 7/7/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 69,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.04500589610518,
+					30.412305480713429
+				]
+			},
+			"properties": {
+				"OBJECTID": 69,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "3/12/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 3/12/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 70,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.13800592473359,
+					30.491805494727829
+				]
+			},
+			"properties": {
+				"OBJECTID": 70,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "3/18/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 3/18/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 71,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.14390592072164,
+					30.36380546724854
+				]
+			},
+			"properties": {
+				"OBJECTID": 71,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "4/19/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 4/19/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 72,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.00650588513844,
+					30.404205480398674
+				]
+			},
+			"properties": {
+				"OBJECTID": 72,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "3/3/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 3/3/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 73,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.108305917584,
+					30.513305499649165
+				]
+			},
+			"properties": {
+				"OBJECTID": 73,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "3/8/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 3/8/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 74,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.13130591973237,
+					30.418605478959763
+				]
+			},
+			"properties": {
+				"OBJECTID": 74,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "5/14/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 5/14/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 75,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.1470059233846,
+					30.410605476961224
+				]
+			},
+			"properties": {
+				"OBJECTID": 75,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "4/19/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 4/19/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 76,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.0119058886458,
+					30.45160548990151
+				]
+			},
+			"properties": {
+				"OBJECTID": 76,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "3/12/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 3/12/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 77,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.12950592305987,
+					30.516405499614167
+				]
+			},
+			"properties": {
+				"OBJECTID": 77,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "4/7/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 4/7/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 78,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.09620591087406,
+					30.432705483471353
+				]
+			},
+			"properties": {
+				"OBJECTID": 78,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "3/11/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 3/11/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 79,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.159405926842,
+					30.418705478175356
+				]
+			},
+			"properties": {
+				"OBJECTID": 79,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "3/16/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 3/16/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 80,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.15740592634239,
+					30.417705477925496
+				]
+			},
+			"properties": {
+				"OBJECTID": 80,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "3/16/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 3/16/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 81,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.00140588467383,
+					30.41500548291674
+				]
+			},
+			"properties": {
+				"OBJECTID": 81,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "4/12/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 4/12/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 82,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.13940592454373,
+					30.48890549409333
+				]
+			},
+			"properties": {
+				"OBJECTID": 82,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "4/26/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 4/26/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 83,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.12560592127619,
+					30.48310549282428
+				]
+			},
+			"properties": {
+				"OBJECTID": 83,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "4/8/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 4/8/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 84,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.12580591431146,
+					30.32730545947942
+				]
+			},
+			"properties": {
+				"OBJECTID": 84,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "5/12/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 5/12/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 85,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					0.000020301395863953077,
+					0.0000020802318658752485
+				]
+			},
+			"properties": {
+				"OBJECTID": 85,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "3/24/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 3/24/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 86,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.13280591785878,
+					30.373705469631774
+				]
+			},
+			"properties": {
+				"OBJECTID": 86,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "3/29/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 3/29/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 87,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.0817059050035,
+					30.39880547689131
+				]
+			},
+			"properties": {
+				"OBJECTID": 87,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "3/29/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 3/29/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 88,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.15920593020945,
+					30.492605493848488
+				]
+			},
+			"properties": {
+				"OBJECTID": 88,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "3/30/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 3/30/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 89,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.09470590645236,
+					30.355005467028719
+				]
+			},
+			"properties": {
+				"OBJECTID": 89,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "4/6/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 4/6/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 90,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.08560590858576,
+					30.44480548568464
+				]
+			},
+			"properties": {
+				"OBJECTID": 90,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "4/6/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 4/6/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 91,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.12040591709934,
+					30.426305480613509
+				]
+			},
+			"properties": {
+				"OBJECTID": 91,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "6/8/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 6/8/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 92,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.16050592900541,
+					30.461305486658945
+				]
+			},
+			"properties": {
+				"OBJECTID": 92,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "4/27/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 4/27/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 93,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.0794059086557,
+					30.494505496931198
+				]
+			},
+			"properties": {
+				"OBJECTID": 93,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "4/26/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 4/26/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 94,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.00380588473377,
+					30.404305480513587
+				]
+			},
+			"properties": {
+				"OBJECTID": 94,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "5/6/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 5/6/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 95,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.14830592487852,
+					30.44530548446062
+				]
+			},
+			"properties": {
+				"OBJECTID": 95,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "4/27/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 4/27/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 96,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.01260588675223,
+					30.40130547976412
+				]
+			},
+			"properties": {
+				"OBJECTID": 96,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "6/29/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 6/29/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 97,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.1017059126977,
+					30.44500548591452
+				]
+			},
+			"properties": {
+				"OBJECTID": 97,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "4/14/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 4/14/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 98,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.18570593458117,
+					30.437605481008178
+				]
+			},
+			"properties": {
+				"OBJECTID": 98,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "5/12/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 5/12/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 99,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.1047059179437,
+					30.54390550693364
+				]
+			},
+			"properties": {
+				"OBJECTID": 99,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "4/30/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 4/30/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 100,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.1316059200771,
+					30.4365054824421
+				]
+			},
+			"properties": {
+				"OBJECTID": 100,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "4/16/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 4/16/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 101,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					0.000020301395863953077,
+					0.0000020802318658752485
+				]
+			},
+			"properties": {
+				"OBJECTID": 101,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "4/21/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 4/21/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 102,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.15060592662218,
+					30.452705485769628
+				]
+			},
+			"properties": {
+				"OBJECTID": 102,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "5/4/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 5/4/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 103,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					0.000020301395863953077,
+					0.0000020802318658752485
+				]
+			},
+			"properties": {
+				"OBJECTID": 103,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "6/22/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 6/22/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 104,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.15330592882555,
+					30.499205495137518
+				]
+			},
+			"properties": {
+				"OBJECTID": 104,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "4/19/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 4/19/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 105,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.04830589989735,
+					30.483005495407327
+				]
+			},
+			"properties": {
+				"OBJECTID": 105,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "4/28/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 4/28/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 106,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.01840589071924,
+					30.45950549178508
+				]
+			},
+			"properties": {
+				"OBJECTID": 106,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "4/20/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 4/20/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 107,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.1641059304443,
+					30.46200548746333
+				]
+			},
+			"properties": {
+				"OBJECTID": 107,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "5/4/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 5/4/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 108,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-90.99200588196584,
+					30.41940548347634
+				]
+			},
+			"properties": {
+				"OBJECTID": 108,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "5/6/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 5/6/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 109,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.18640593448623,
+					30.41900547762077
+				]
+			},
+			"properties": {
+				"OBJECTID": 109,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "5/26/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 5/26/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 110,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-90.90160585452651,
+					30.34810547169019
+				]
+			},
+			"properties": {
+				"OBJECTID": 110,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "4/26/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 4/26/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 111,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.07230590229551,
+					30.394805475892043
+				]
+			},
+			"properties": {
+				"OBJECTID": 111,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "6/8/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 6/8/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 112,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.04540589566551,
+					30.40140547808039
+				]
+			},
+			"properties": {
+				"OBJECTID": 112,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "5/5/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 5/5/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 113,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.05830589699952,
+					30.365405469986514
+				]
+			},
+			"properties": {
+				"OBJECTID": 113,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "6/16/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 6/16/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 114,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.16840593538558,
+					30.551505505774516
+				]
+			},
+			"properties": {
+				"OBJECTID": 114,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "4/30/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 4/30/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 115,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.07180590082163,
+					30.36780547004645
+				]
+			},
+			"properties": {
+				"OBJECTID": 115,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "6/16/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 6/16/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 116,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.0328058928776,
+					30.414305481213036
+				]
+			},
+			"properties": {
+				"OBJECTID": 116,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "5/5/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 5/5/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 117,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.14030592467867,
+					30.472905490096367
+				]
+			},
+			"properties": {
+				"OBJECTID": 117,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "5/18/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 5/18/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 118,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-90.98080587808875,
+					30.400305480413637
+				]
+			},
+			"properties": {
+				"OBJECTID": 118,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "6/16/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 6/16/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 119,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.13650592570787,
+					30.515805499824013
+				]
+			},
+			"properties": {
+				"OBJECTID": 119,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "5/26/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 5/26/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 120,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.0085058856381,
+					30.4075054805935
+				]
+			},
+			"properties": {
+				"OBJECTID": 120,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "6/16/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 6/16/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 121,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.10370590780139,
+					30.322705459589316
+				]
+			},
+			"properties": {
+				"OBJECTID": 121,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "6/7/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 6/7/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 122,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.12570592229042,
+					30.523005501802517
+				]
+			},
+			"properties": {
+				"OBJECTID": 122,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "5/7/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 5/7/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 123,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.12680591456126,
+					30.346205464110939
+				]
+			},
+			"properties": {
+				"OBJECTID": 123,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "5/18/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 5/18/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 124,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.04190589344222,
+					30.369905471560345
+				]
+			},
+			"properties": {
+				"OBJECTID": 124,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "5/18/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 5/18/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 125,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.07690590398426,
+					30.405105477835606
+				]
+			},
+			"properties": {
+				"OBJECTID": 125,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "5/17/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 5/17/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 126,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.13040592409408,
+					30.51660549984399
+				]
+			},
+			"properties": {
+				"OBJECTID": 126,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "5/10/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 5/10/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 127,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.176205930859,
+					30.399905473658749
+				]
+			},
+			"properties": {
+				"OBJECTID": 127,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "5/16/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 5/16/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 128,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.07230590139619,
+					30.36750546970171
+				]
+			},
+			"properties": {
+				"OBJECTID": 128,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "5/19/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 5/19/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 129,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.03130589295256,
+					30.42380548313656
+				]
+			},
+			"properties": {
+				"OBJECTID": 129,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "5/20/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 5/20/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 130,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.14880592365444,
+					30.410605476961224
+				]
+			},
+			"properties": {
+				"OBJECTID": 130,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "5/20/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 5/20/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 131,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.16800593042933,
+					30.442405482926746
+				]
+			},
+			"properties": {
+				"OBJECTID": 131,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "5/20/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 5/20/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 132,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.16280592895044,
+					30.4492054844456
+				]
+			},
+			"properties": {
+				"OBJECTID": 132,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "6/7/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 6/7/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 133,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					0.000020301395863953077,
+					0.0000020802318658752485
+				]
+			},
+			"properties": {
+				"OBJECTID": 133,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "5/25/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 5/25/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 134,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.13980592230542,
+					30.422305479614239
+				]
+			},
+			"properties": {
+				"OBJECTID": 134,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "5/23/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 5/23/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 135,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.05600590155109,
+					30.462805491080588
+				]
+			},
+			"properties": {
+				"OBJECTID": 135,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "6/10/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 6/10/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 136,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.04430589620012,
+					30.42600548386605
+				]
+			},
+			"properties": {
+				"OBJECTID": 136,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "6/10/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 6/10/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 137,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.08470590845087,
+					30.454805488182786
+				]
+			},
+			"properties": {
+				"OBJECTID": 137,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "5/24/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 5/24/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 138,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.08160590578791,
+					30.404805477490869
+				]
+			},
+			"properties": {
+				"OBJECTID": 138,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "6/21/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 6/21/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 139,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.0849059086807,
+					30.455205488642436
+				]
+			},
+			"properties": {
+				"OBJECTID": 139,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "7/1/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 7/1/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 140,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.07700590409917,
+					30.405505478295255
+				]
+			},
+			"properties": {
+				"OBJECTID": 140,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "6/17/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 6/17/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 141,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					0.000020301395863953077,
+					0.0000020802318658752485
+				]
+			},
+			"properties": {
+				"OBJECTID": 141,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "6/1/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 6/1/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 142,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.127105914906,
+					30.348205463711225
+				]
+			},
+			"properties": {
+				"OBJECTID": 142,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "5/28/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 5/28/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 143,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.1377059216909,
+					30.425905480153859
+				]
+			},
+			"properties": {
+				"OBJECTID": 143,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "6/3/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 6/3/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 144,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.10780591700945,
+					30.501805497225975
+				]
+			},
+			"properties": {
+				"OBJECTID": 144,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "6/15/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 6/15/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 145,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.03770589491109,
+					30.439405486673935
+				]
+			},
+			"properties": {
+				"OBJECTID": 145,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "6/21/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 6/21/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 146,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.14100592458374,
+					30.467905488847295
+				]
+			},
+			"properties": {
+				"OBJECTID": 146,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "6/14/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 6/14/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 147,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.13130591973237,
+					30.418605478959763
+				]
+			},
+			"properties": {
+				"OBJECTID": 147,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "6/25/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 6/25/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 148,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.10790591352708,
+					30.427905481552786
+				]
+			},
+			"properties": {
+				"OBJECTID": 148,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "6/14/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 6/14/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 149,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.07720590432899,
+					30.40540547818034
+				]
+			},
+			"properties": {
+				"OBJECTID": 149,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "6/29/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 6/29/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 150,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.01260588675223,
+					30.40130547976412
+				]
+			},
+			"properties": {
+				"OBJECTID": 150,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "6/16/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 6/16/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 151,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.00290588190092,
+					30.357205470456166
+				]
+			},
+			"properties": {
+				"OBJECTID": 151,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "6/16/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 6/16/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 152,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.14330592273012,
+					30.416505478345188
+				]
+			},
+			"properties": {
+				"OBJECTID": 152,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "6/13/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 6/13/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 153,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.02650589283263,
+					30.453405490171293
+				]
+			},
+			"properties": {
+				"OBJECTID": 153,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "6/23/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 6/23/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 154,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.18530593502084,
+					30.443205482047405
+				]
+			},
+			"properties": {
+				"OBJECTID": 154,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "6/16/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 6/16/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 155,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.13110592040187,
+					30.43690548290175
+				]
+			},
+			"properties": {
+				"OBJECTID": 155,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "6/16/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 6/16/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 156,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.07690590398426,
+					30.40490547760578
+				]
+			},
+			"properties": {
+				"OBJECTID": 156,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "6/28/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 6/28/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 157,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.10770591329725,
+					30.426105481283004
+				]
+			},
+			"properties": {
+				"OBJECTID": 157,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "6/17/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 6/17/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 158,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.17280593234784,
+					30.4598054867339
+				]
+			},
+			"properties": {
+				"OBJECTID": 158,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "6/22/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 6/22/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 159,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.12280591536069,
+					30.368505468152877
+				]
+			},
+			"properties": {
+				"OBJECTID": 159,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "6/22/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 6/22/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 160,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.23130595370674,
+					30.57820550947673
+				]
+			},
+			"properties": {
+				"OBJECTID": 160,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "7/6/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 7/6/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 161,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.15560592966989,
+					30.4927054939634
+				]
+			},
+			"properties": {
+				"OBJECTID": 161,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "6/22/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 6/22/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 162,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.01190588504852,
+					30.36660547226478
+				]
+			},
+			"properties": {
+				"OBJECTID": 162,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "6/23/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 6/23/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 163,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.16960593136861,
+					30.455205485045157
+				]
+			},
+			"properties": {
+				"OBJECTID": 163,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "6/30/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 6/30/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 164,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.1441059272467,
+					30.510105497770554
+				]
+			},
+			"properties": {
+				"OBJECTID": 164,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "6/24/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 6/24/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 165,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.13400591923772,
+					30.40470547557726
+				]
+			},
+			"properties": {
+				"OBJECTID": 165,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "7/1/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 7/1/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 166,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.04750589628003,
+					30.408205479599248
+				]
+			},
+			"properties": {
+				"OBJECTID": 166,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "7/1/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 7/1/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 167,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.1308059236544,
+					30.518105499769037
+				]
+			},
+			"properties": {
+				"OBJECTID": 167,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "6/25/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 6/25/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 168,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.14220592326473,
+					30.440305483211547
+				]
+			},
+			"properties": {
+				"OBJECTID": 168,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "6/27/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 6/27/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 169,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.16590593071408,
+					30.456405485524784
+				]
+			},
+			"properties": {
+				"OBJECTID": 169,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "6/28/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 6/28/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 170,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.18870593443131,
+					30.418105476586505
+				]
+			},
+			"properties": {
+				"OBJECTID": 170,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "6/28/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 6/28/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 171,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.18870593443131,
+					30.418105476586505
+				]
+			},
+			"properties": {
+				"OBJECTID": 171,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "6/28/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 6/28/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 172,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.1308059236544,
+					30.518105499769037
+				]
+			},
+			"properties": {
+				"OBJECTID": 172,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "6/28/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 6/28/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 173,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.03810589537074,
+					30.439405486673935
+				]
+			},
+			"properties": {
+				"OBJECTID": 173,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "6/28/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 6/28/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 174,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.16550593025443,
+					30.456405485524784
+				]
+			},
+			"properties": {
+				"OBJECTID": 174,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "6/28/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 6/28/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 175,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.17240593098888,
+					30.4386054821573
+				]
+			},
+			"properties": {
+				"OBJECTID": 175,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "6/30/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 6/30/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 176,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.07210590566297,
+					30.456405489122063
+				]
+			},
+			"properties": {
+				"OBJECTID": 176,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "6/29/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 6/29/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 177,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.0770059058978,
+					30.445205486144347
+				]
+			},
+			"properties": {
+				"OBJECTID": 177,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "6/29/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 6/29/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 178,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.04210589906796,
+					30.497005498904686
+				]
+			},
+			"properties": {
+				"OBJECTID": 178,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "6/29/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 6/29/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 179,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.16990593171335,
+					30.45090548460047
+				]
+			},
+			"properties": {
+				"OBJECTID": 179,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "6/30/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 6/30/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 180,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.15820593085897,
+					30.501305495752093
+				]
+			},
+			"properties": {
+				"OBJECTID": 180,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "7/1/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 7/1/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 181,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.11730591983229,
+					30.501505496881238
+				]
+			},
+			"properties": {
+				"OBJECTID": 181,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "7/6/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 7/6/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 182,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.06610590056681,
+					30.380505472949268
+				]
+			},
+			"properties": {
+				"OBJECTID": 182,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "6/30/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 6/30/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 183,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.13900592318476,
+					30.45090548549979
+				]
+			},
+			"properties": {
+				"OBJECTID": 183,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "6/30/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 6/30/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 184,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.04320589493608,
+					30.394405477231034
+				]
+			},
+			"properties": {
+				"OBJECTID": 184,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "6/30/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 6/30/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 185,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.16030593057423,
+					30.490905493693619
+				]
+			},
+			"properties": {
+				"OBJECTID": 185,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "7/1/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 7/1/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 186,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					0.000020301395863953077,
+					0.0000020802318658752485
+				]
+			},
+			"properties": {
+				"OBJECTID": 186,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "7/1/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 7/1/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 187,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.12170591769393,
+					30.435905482651948
+				]
+			},
+			"properties": {
+				"OBJECTID": 187,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "7/1/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 7/1/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 188,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.14260592372438,
+					30.441005483116613
+				]
+			},
+			"properties": {
+				"OBJECTID": 188,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "7/1/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 7/1/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 189,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.05540589636502,
+					30.365405469986514
+				]
+			},
+			"properties": {
+				"OBJECTID": 189,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "7/1/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 7/1/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 190,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.07450590212562,
+					30.368205470506099
+				]
+			},
+			"properties": {
+				"OBJECTID": 190,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "7/1/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 7/1/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 191,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.03520589563556,
+					30.462405491520259
+				]
+			},
+			"properties": {
+				"OBJECTID": 191,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "7/1/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 7/1/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 192,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.16690593186326,
+					30.481705491215508
+				]
+			},
+			"properties": {
+				"OBJECTID": 192,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "7/2/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 7/2/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 193,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.10890591737416,
+					30.502805497475778
+				]
+			},
+			"properties": {
+				"OBJECTID": 193,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "7/2/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 7/2/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 194,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.14630592977483,
+					30.54880550626916
+				]
+			},
+			"properties": {
+				"OBJECTID": 194,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "7/2/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 7/2/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 195,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.14200592573286,
+					30.499705495712136
+				]
+			},
+			"properties": {
+				"OBJECTID": 195,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "7/2/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 7/2/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 196,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.01160588830106,
+					30.438505487438364
+				]
+			},
+			"properties": {
+				"OBJECTID": 196,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "7/2/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 7/2/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 197,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.15900592908031,
+					30.4575054858895
+				]
+			},
+			"properties": {
+				"OBJECTID": 197,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "7/2/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 7/2/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 198,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.04830590079667,
+					30.499005499404349
+				]
+			},
+			"properties": {
+				"OBJECTID": 198,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "7/2/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 7/2/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 199,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.02650589283263,
+					30.453405490171293
+				]
+			},
+			"properties": {
+				"OBJECTID": 199,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "7/2/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 7/2/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 200,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.12570592229042,
+					30.523005501802517
+				]
+			},
+			"properties": {
+				"OBJECTID": 200,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "7/2/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 7/2/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 201,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					0.000020301395863953077,
+					0.0000020802318658752485
+				]
+			},
+			"properties": {
+				"OBJECTID": 201,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "7/7/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 7/7/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 202,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.04230589570051,
+					30.413105480733408
+				]
+			},
+			"properties": {
+				"OBJECTID": 202,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "7/5/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 7/5/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 203,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.05960590029201,
+					30.428905483601228
+				]
+			},
+			"properties": {
+				"OBJECTID": 203,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "7/8/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 7/8/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 204,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.20000594381924,
+					30.539705502107269
+				]
+			},
+			"properties": {
+				"OBJECTID": 204,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "7/6/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 7/6/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 205,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.17910593419146,
+					30.46950548798793
+				]
+			},
+			"properties": {
+				"OBJECTID": 205,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "7/6/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 7/6/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 206,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.15820592816101,
+					30.443805483636198
+				]
+			},
+			"properties": {
+				"OBJECTID": 206,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "7/6/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 7/6/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 207,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.13530591983232,
+					30.4104054767314
+				]
+			},
+			"properties": {
+				"OBJECTID": 207,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "7/6/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 7/6/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 208,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.18650593550047,
+					30.44350548239214
+				]
+			},
+			"properties": {
+				"OBJECTID": 208,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "7/6/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 7/6/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 209,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.00570588511846,
+					30.397805478440149
+				]
+			},
+			"properties": {
+				"OBJECTID": 209,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "7/7/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 7/7/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 210,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.00580588523337,
+					30.39870547857504
+				]
+			},
+			"properties": {
+				"OBJECTID": 210,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "7/7/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 7/7/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 211,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.15270592633738,
+					30.43610548198245
+				]
+			},
+			"properties": {
+				"OBJECTID": 211,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "7/7/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 7/7/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 212,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.0214058914687,
+					30.4577054915153
+				]
+			},
+			"properties": {
+				"OBJECTID": 212,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "7/7/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 7/7/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 213,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.01840589071924,
+					30.46290549209482
+				]
+			},
+			"properties": {
+				"OBJECTID": 213,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "7/7/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 7/7/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 214,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.16520592990969,
+					30.456405485524784
+				]
+			},
+			"properties": {
+				"OBJECTID": 214,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "7/7/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 7/7/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 215,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.12500592238536,
+					30.512705498959634
+				]
+			},
+			"properties": {
+				"OBJECTID": 215,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "7/7/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 7/7/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 216,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.12500592238536,
+					30.512705498959634
+				]
+			},
+			"properties": {
+				"OBJECTID": 216,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "7/7/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 7/7/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 217,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.12740591615006,
+					30.37000546897724
+				]
+			},
+			"properties": {
+				"OBJECTID": 217,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "7/7/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 7/7/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 218,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.11250591881304,
+					30.512605499744099
+				]
+			},
+			"properties": {
+				"OBJECTID": 218,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "7/7/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 7/7/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 219,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-90.95040586743682,
+					30.350205470506127
+				]
+			},
+			"properties": {
+				"OBJECTID": 219,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "7/7/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 7/7/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 220,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.15070592403913,
+					30.40470547557726
+				]
+			},
+			"properties": {
+				"OBJECTID": 220,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "7/7/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 7/7/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 221,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.12910591990226,
+					30.438005483266467
+				]
+			},
+			"properties": {
+				"OBJECTID": 221,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "7/7/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 7/7/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 222,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.07000589965253,
+					30.34810546629427
+				]
+			},
+			"properties": {
+				"OBJECTID": 222,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "7/7/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 7/7/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 223,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.03520589563556,
+					30.462305491405347
+				]
+			},
+			"properties": {
+				"OBJECTID": 223,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "7/7/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 7/7/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 224,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.08160590848587,
+					30.470705492064839
+				]
+			},
+			"properties": {
+				"OBJECTID": 224,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "7/7/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 7/7/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 225,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.08580590881559,
+					30.446905486299217
+				]
+			},
+			"properties": {
+				"OBJECTID": 225,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "7/7/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 7/7/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 226,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.17310593089394,
+					30.421005478120379
+				]
+			},
+			"properties": {
+				"OBJECTID": 226,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "7/7/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 7/7/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 227,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.1308059236544,
+					30.518105499769037
+				]
+			},
+			"properties": {
+				"OBJECTID": 227,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "7/8/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 7/8/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 228,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.16250593220298,
+					30.51000549765564
+				]
+			},
+			"properties": {
+				"OBJECTID": 228,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "7/8/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 7/8/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 229,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.0119058886458,
+					30.45160548990151
+				]
+			},
+			"properties": {
+				"OBJECTID": 229,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "7/8/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 7/8/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 230,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.08730590784131,
+					30.414405479529309
+				]
+			},
+			"properties": {
+				"OBJECTID": 230,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "7/8/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 7/8/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 231,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.16110592879557,
+					30.44580548413586
+				]
+			},
+			"properties": {
+				"OBJECTID": 231,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "7/8/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 7/8/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 232,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.07690590398426,
+					30.403705478025417
+				]
+			},
+			"properties": {
+				"OBJECTID": 232,
+				"typename": "Road Buckle",
+				"icon": "ae-s-route-4",
+				"Date_Text": "7/8/2021",
+				"description": "<strong>Road Issue: Road Buckle</strong><br> Date Reported: 7/8/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 233,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.16530592912528,
+					30.421005478120379
+				]
+			},
+			"properties": {
+				"OBJECTID": 233,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "7/8/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 7/8/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 234,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.15340592804108,
+					30.46730548905714
+				]
+			},
+			"properties": {
+				"OBJECTID": 234,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "7/8/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 7/8/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 235,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.06860590343968,
+					30.446005487063645
+				]
+			},
+			"properties": {
+				"OBJECTID": 235,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "7/8/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 7/8/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 236,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.0192058898399,
+					30.43530548645907
+				]
+			},
+			"properties": {
+				"OBJECTID": 236,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "7/8/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 7/8/2021</br>"
+			}
+		},
+		{
+			"type": "Feature",
+			"id": 237,
+			"geometry": {
+				"type": "Point",
+				"coordinates": [
+					-91.03350589188335,
+					30.39470547757577
+				]
+			},
+			"properties": {
+				"OBJECTID": 237,
+				"typename": "Pothole",
+				"icon": "road-closure",
+				"Date_Text": "7/9/2021",
+				"description": "<strong>Road Issue: Pothole</strong><br> Date Reported: 7/9/2021</br>"
+			}
+		}
+	]
+    };
+
+    const filterGroup = document.getElementById('filter-group');
+    const map = new mapboxgl.Map({
+        container: 'map',
+        style: 'mapbox://styles/amilanes24/ckx26w0xm1cq015o7t0e7ledi',
+        center: [-91.094556,  30.423277],
+        zoom: 11
+    });
+
+    const geocoder = new MapboxGeocoder({
+        accessToken: mapboxgl.accessToken,
+        marker: {
+            color: 'orange'
+        },
+        mapboxgl: mapboxgl,
+		countries: 'us',
+		proximity: {
+			longitude: -91.094556,
+			latitude: 30.423277
+		}
+    });
+
+    map.addControl(geocoder);
+
+
+    map.on('load', () => {
+        // Add a GeoJSON source containing place coordinates and information.
+        map.addSource('places', {
+            'type': 'geojson',
+            'data': places
+        });
+
+        for (const feature of places.features) {
+            const symbol = feature.properties.icon;
+            const layerID = feature.properties.typename;
+			const description = feature.properties.typename;
+			const status = feature.properties.StatusDesc;
+
+            // Add a layer for this symbol type if it hasn't been added already.
+            if (!map.getLayer(layerID)) {
+                map.addLayer({
+                    'id': layerID,
+                    'type': 'symbol',
+                    'source': 'places',
+                    'layout': {
+                        // These icons are a part of the Mapbox Light style.
+                        // To view all images available in a Mapbox style, open
+                        // the style in Mapbox Studio and click the "Images" tab.
+                        // To add a new image to the style at runtime see
+                        // https://docs.mapbox.com/mapbox-gl-js/example/add-image/
+                        'icon-image': `${symbol}`,
+						'icon-size': 0.35,
+                        'icon-allow-overlap': true
+                    },
+                    'filter': ['==', 'icon', symbol]
+                });
+
+                // Add checkbox and label elements for the layer.
+                const input = document.createElement('input');
+                input.type = 'checkbox';
+                input.id = layerID;
+                input.checked = true;
+                filterGroup.appendChild(input);
+
+                const label = document.createElement('label');
+                label.setAttribute('for', layerID);
+                label.textContent = layerID;
+                filterGroup.appendChild(label);
+
+                // When the checkbox changes, update the visibility of the layer.
+                input.addEventListener('change', (e) => {
+                    map.setLayoutProperty(
+                        layerID,
+                        'visibility',
+                        e.target.checked ? 'visible' : 'none'
+                    );
+ 
+  
+               });
+ 
+  
+ 
+           }
+
+	   
+        }
+
+
+        // When a click event occurs on a feature in the places layer, open a popup at the
+        // location of the feature, with description HTML from its properties.
+        map.on('click', 'Pothole', (e) => {
+            // Copy coordinates array.
+            const coordinates = e.features[0].geometry.coordinates.slice();
+            const description = e.features[0].properties.description;
+
+            // Ensure that if the map is zoomed out such that multiple
+            // copies of the feature are visible, the popup appears
+            // over the copy being pointed to.
+            while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
+                coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
+            }
+
+            new mapboxgl.Popup()
+                .setLngLat(coordinates)
+                .setHTML(description)
+                .addTo(map);
+        });
+
+        // Change the cursor to a pointer when the mouse is over the places layer.
+        map.on('mouseenter', 'Pothole', () => {
+            map.getCanvas().style.cursor = 'pointer';
+        });
+
+        // Change it back to a pointer when it leaves.
+        map.on('mouseleave', 'Pothole', () => {
+            map.getCanvas().style.cursor = '';
+        });
+
+
+        // When a click event occurs on a feature in the places layer, open a popup at the
+        // location of the feature, with description HTML from its properties.
+        map.on('click', 'Road Buckle', (e) => {
+            // Copy coordinates array.
+            const coordinates = e.features[0].geometry.coordinates.slice();
+            const description = e.features[0].properties.description;
+
+            // Ensure that if the map is zoomed out such that multiple
+            // copies of the feature are visible, the popup appears
+            // over the copy being pointed to.
+            while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
+                coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
+            }
+
+            new mapboxgl.Popup()
+                .setLngLat(coordinates)
+                .setHTML(description)
+                .addTo(map);
+        });
+
+        // Change the cursor to a pointer when the mouse is over the places layer.
+        map.on('mouseenter', 'Road Buckle', () => {
+            map.getCanvas().style.cursor = 'pointer';
+        });
+
+        // Change it back to a pointer when it leaves.
+        map.on('mouseleave', 'Road Buckle', () => {
+            map.getCanvas().style.cursor = '';
+        });
+
+const scale = new mapboxgl.ScaleControl({
+    maxWidth: 80,
+    unit: 'imperial'
+});
+map.addControl(scale);
+
+
+const nav = new mapboxgl.NavigationControl();
+map.addControl(nav, 'top-left');
+
+
+
+
+
+
+    });
+
+
+
+</script>
+
+</body>
+</html>
